@@ -42,7 +42,7 @@ class KubernetesExecutorConfig:
     def __init__(self, image=None, image_pull_policy=None, request_memory=None,
                  request_cpu=None, limit_memory=None, limit_cpu=None,
                  gcp_service_account_key=None, node_selectors=None, affinity=None,
-                 annotations=None, volumes=None, volume_mounts=None, tolerations=None):
+                 annotations=None, volumes=None, volume_mounts=None, tolerations=None, hostnetwork=None):
         self.image = image
         self.image_pull_policy = image_pull_policy
         self.request_memory = request_memory
@@ -56,17 +56,18 @@ class KubernetesExecutorConfig:
         self.volumes = volumes
         self.volume_mounts = volume_mounts
         self.tolerations = tolerations
+        self.hostnetwork = hostnetwork
 
     def __repr__(self):
         return "{}(image={}, image_pull_policy={}, request_memory={}, request_cpu={}, " \
                "limit_memory={}, limit_cpu={}, gcp_service_account_key={}, " \
                "node_selectors={}, affinity={}, annotations={}, volumes={}, " \
-               "volume_mounts={}, tolerations={})" \
+               "volume_mounts={}, tolerations={}, hostnetwork={})" \
             .format(KubernetesExecutorConfig.__name__, self.image, self.image_pull_policy,
                     self.request_memory, self.request_cpu, self.limit_memory,
                     self.limit_cpu, self.gcp_service_account_key, self.node_selectors,
                     self.affinity, self.annotations, self.volumes, self.volume_mounts,
-                    self.tolerations)
+                    self.tolerations, self.hostnetwork)
 
     @staticmethod
     def from_dict(obj):
@@ -93,6 +94,7 @@ class KubernetesExecutorConfig:
             volumes=namespaced.get('volumes', []),
             volume_mounts=namespaced.get('volume_mounts', []),
             tolerations=namespaced.get('tolerations', None),
+            hostnetwork=namespaced.get('hostnetwork', None),
         )
 
     def as_dict(self):
@@ -110,6 +112,7 @@ class KubernetesExecutorConfig:
             'volumes': self.volumes,
             'volume_mounts': self.volume_mounts,
             'tolerations': self.tolerations,
+            'hostnetwork': self.hostnetwork,
         }
 
 
@@ -173,6 +176,9 @@ class KubeConfig:
         # This prop may optionally be set for PV Claims and is used to write logs
         self.logs_volume_claim = conf.get(self.kubernetes_section, 'logs_volume_claim')
 
+        # This prop may optionally be set for PV Claims and is used to write logs
+        self.tmp_volume_claim = conf.get(self.kubernetes_section, 'tmp_volume_claim')
+
         # This prop may optionally be set for PV Claims and is used to locate DAGs
         # on a SubPath
         self.dags_volume_subpath = conf.get(
@@ -183,14 +189,25 @@ class KubeConfig:
         self.logs_volume_subpath = conf.get(
             self.kubernetes_section, 'logs_volume_subpath')
 
+        # This prop may optionally be set for PV Claims and is used to locate tmp files
+        # on a SubPath
+        self.tmp_volume_subpath = conf.get(
+            self.kubernetes_section, 'tmp_volume_subpath')
+
         # Optionally, hostPath volume containing DAGs
         self.dags_volume_host = conf.get(self.kubernetes_section, 'dags_volume_host')
 
         # Optionally, write logs to a hostPath Volume
         self.logs_volume_host = conf.get(self.kubernetes_section, 'logs_volume_host')
 
+        # Optionally, write logs to a hostPath Volume
+        self.tmp_volume_host = conf.get(self.kubernetes_section, 'tmp_volume_host')
+
         # This prop may optionally be set for PV Claims and is used to write logs
         self.base_log_folder = configuration.get(self.core_section, 'base_log_folder')
+
+        # This prop may optionally be set for PV Claims and is used to write tmp files
+        self.base_tmp_folder = configuration.get(self.core_section, 'base_tmp_folder')
 
         # The Kubernetes Namespace in which the Scheduler and Webserver reside. Note
         # that if your
