@@ -132,7 +132,7 @@ class MySqlToHiveTransfer(BaseOperator):
             cursor.execute(col_sql)
             for row in cursor.fetchall():
                 col_comments[row[0]] = " comment '%s' " % (row[1], )
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
             self.log.event(str(e))
 
         self.log.info("Dumping MySQL query results to local file")
